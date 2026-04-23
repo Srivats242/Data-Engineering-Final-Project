@@ -27,6 +27,59 @@ CSV Dataset → Kafka Producer → Kafka Broker → Kafka Consumer → MySQL (OD
 
 ---
 
+# Database Implementation
+
+The system uses MySQL to implement both an operational database (ODB) and a data warehouse (DW).
+
+## Operational Database (ODB)
+
+The operational database contains a table called `sales_odb`, which stores raw transactional data streamed from Kafka. The Kafka consumer reads messages from the Kafka topic and inserts each record into this table.
+
+The table includes fields such as:
+- Order ID
+- Order Date
+- Customer Name
+- City, State, Region
+- Product Name and Category
+- Quantity, Sales, and Profit
+
+This table acts as the raw data layer of the system.
+
+## Data Warehouse (DW)
+
+The data warehouse is implemented using a star schema to support analytical queries.
+
+It consists of:
+- `customer_dim`
+- `product_dim`
+- `location_dim`
+- `date_dim`
+- `sales_fact`
+
+The dimension tables store descriptive attributes, while the fact table stores measurable values such as sales, profit, and quantity.
+
+The fact table links to each dimension table using keys.
+
+## Data Transformation
+
+Data is loaded into the warehouse using SQL transformation queries.
+
+- Dimension tables are populated using `SELECT DISTINCT` queries from the operational database
+- The fact table is populated by joining the operational table with the dimension tables
+
+This structure allows for efficient OLAP queries, such as:
+- Total sales by region
+- Profit by category
+- Monthly sales trends
+- Top customers by spending
+
+## Notes
+
+- Date values were converted into MySQL format before insertion
+- The data warehouse is created in a separate database (`dw`) within the same MySQL server
+
+---
+
 # Project Structure
 
 ```
